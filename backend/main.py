@@ -1,20 +1,30 @@
 from fastapi import FastAPI
+import database, models
 
+# Import your API routers
+from routers.groups import router as groups_router
+from routers.expenses import router as expenses_router
+from routers.balances import router as balances_router
+
+# Initialize FastAPI app
 app = FastAPI(
     title="Splitwise Clone API",
-    description="A simplified Splitwise-like service for managing groups, expenses, and balances.",
+    description="A simple Splitwise-like expense tracking API built with FastAPI and PostgreSQL.",
     version="0.1.0"
 )
 
-@app.get("/")
-async def root():
-    return {"message": "🍻 Welcome to your Splitwise Clone API!"}
+# Create all database tables
+models.Base.metadata.create_all(bind=database.engine)
 
-if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run(
-        "main:app",
-        host="127.0.0.1",
-        port=8000,
-        reload=True,
-    )
+# Include routers
+app.include_router(groups_router)
+app.include_router(expenses_router)
+app.include_router(balances_router)
+
+# Root endpoint
+@app.get("/")
+def read_root():
+    return {"message": "Welcome to the Splitwise Clone API"}
+
+# To run:
+#   uvicorn main:app --reload --host 0.0.0.0 --port 8000
