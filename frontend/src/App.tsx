@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Link } from "react-router-dom";
 import CreateGroup from "./components/CreateGroup";
 import AddExpense from "./components/AddExpense";
+import GroupBalances from "./components/GroupBalances";
 
 function App() {
   return (
@@ -17,8 +18,8 @@ function App() {
         <Routes>
           <Route path="/" element={<CreateGroup />} />
           <Route path="/add-expense" element={<AddExpense />} />
-          {/* <Route path="/group-balances" element={<GroupBalances />} />
-          <Route path="/user-balances" element={<UserBalances />} /> */}
+          <Route path="/group-balances" element={<GroupBalances />} />
+          {/* <Route path="/user-balances" element={<UserBalances />} /> */}
         </Routes>
       </div>
     </BrowserRouter>
