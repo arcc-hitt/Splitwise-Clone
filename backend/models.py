@@ -7,7 +7,7 @@ import enum
 group_user = Table(
     'group_user', Base.metadata,
     Column('group_id', ForeignKey('groups.id'), primary_key=True),
-    Column('user_id', Integer, primary_key=True)
+    Column('user_id', ForeignKey('users.id'), primary_key=True)  
 )
 
 class SplitType(enum.Enum):

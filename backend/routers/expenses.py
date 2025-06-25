@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 import models, schemas, database
+from routers.deps import get_db
 
 router = APIRouter(prefix='/groups/{group_id}/expenses', tags=['expenses'])
 
@@ -8,7 +9,7 @@ router = APIRouter(prefix='/groups/{group_id}/expenses', tags=['expenses'])
 def add_expense(
     group_id: int,
     exp: schemas.ExpenseCreate,
-    db: Session = Depends(database.SessionLocal)
+    db: Session = Depends(get_db)
 ):
     grp = db.query(models.Group).get(group_id)
     if not grp:

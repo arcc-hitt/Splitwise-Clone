@@ -1,15 +1,10 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 import models, schemas, database
+from routers.deps import get_db
 
 router = APIRouter(prefix='/groups', tags=['groups'])
 
-def get_db():
-    db = database.SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
 
 @router.post('/', response_model=schemas.Group)
 def create_group(group: schemas.GroupCreate, db: Session = Depends(get_db)):

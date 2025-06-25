@@ -15,7 +15,7 @@ class ExpenseCreate(BaseModel):
     amount: float
     paid_by: int
     split_type: SplitType
-    splits: Optional[List[SplitCreate]]
+    splits: Optional[List[SplitCreate]] = None
 
 class Expense(BaseModel):
     id: int

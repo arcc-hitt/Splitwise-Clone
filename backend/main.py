@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 import database, models
 
 # Import your API routers
@@ -11,6 +12,19 @@ app = FastAPI(
     title="Splitwise Clone API",
     description="A simple Splitwise-like expense tracking API built with FastAPI and PostgreSQL.",
     version="0.1.0"
+)
+
+# Configure CORS
+origins = [
+    "http://localhost:5173",
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 # Create all database tables
