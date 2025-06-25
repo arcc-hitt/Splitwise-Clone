@@ -1,13 +1,14 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 import models, database
+from routers.deps import get_db
 
 router = APIRouter(tags=['balances'])
 
 @router.get('/groups/{group_id}/balances')
 def group_balances(
     group_id: int,
-    db: Session = Depends(database.SessionLocal)
+    db: Session = Depends(get_db)
 ):
     grp = db.query(models.Group).get(group_id)
     balances: dict[int, float] = {}
@@ -20,7 +21,7 @@ def group_balances(
 @router.get('/users/{user_id}/balances')
 def user_balances(
     user_id: int,
-    db: Session = Depends(database.SessionLocal)
+    db: Session = Depends(get_db)
 ):
     balances: dict[int, float] = {}
     groups = db.query(models.Group).all()
