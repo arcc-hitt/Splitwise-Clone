@@ -1,3 +1,4 @@
+from typing import List
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 import models, schemas, database
@@ -43,3 +44,16 @@ def get_group(group_id: int, db: Session = Depends(get_db)):
         user_ids=[u.id for u in grp.users],
         total_expenses=total
     )
+
+@router.get('/', response_model=List[schemas.Group])
+def list_groups(db: Session = Depends(get_db)):
+    groups = db.query(models.Group).all()
+    return [
+      schemas.Group(
+        id=g.id,
+        name=g.name,
+        user_ids=[u.id for u in g.users],
+        total_expenses=sum(exp.amount for exp in g.expenses)
+      )
+      for g in groups
+    ]
