@@ -1,3 +1,4 @@
+from typing import List
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 import models, schemas, database
@@ -49,3 +50,13 @@ def add_expense(
             ))
     db.commit()
     return db_exp
+
+@router.get('/', response_model=List[schemas.Expense])
+def list_expenses(
+    group_id: int,
+    db: Session = Depends(get_db)
+):
+    grp = db.query(models.Group).get(group_id)
+    if not grp:
+        raise HTTPException(404, "Group not found")
+    return grp.expenses
