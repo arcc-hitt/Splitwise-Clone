@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 import models, database
 from routers.deps import get_db
@@ -23,6 +23,9 @@ def user_balances(
     user_id: int,
     db: Session = Depends(get_db)
 ):
+    user = db.query(models.User).get(user_id)
+    if not user:
+        raise HTTPException(404, 'User not found')
     balances: dict[int, float] = {}
     groups = db.query(models.Group).all()
     for grp in groups:
