@@ -10,6 +10,13 @@ class SplitCreate(BaseModel):
     user_id: int
     share: float
 
+class SplitOut(BaseModel):
+    user_id: int
+    share: float
+
+    class Config:
+        orm_mode = True
+
 class ExpenseCreate(BaseModel):
     description: str
     amount: float
@@ -23,6 +30,7 @@ class Expense(BaseModel):
     amount: float
     paid_by: int
     split_type: SplitType
+    splits: List[SplitOut]
 
     class Config:
         orm_mode = True

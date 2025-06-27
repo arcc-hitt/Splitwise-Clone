@@ -24,3 +24,12 @@ export interface Group {
   user_ids: number[];
   total_expenses: number;
 }
+
+export interface Expense {
+    id: number;
+    description: string;
+    amount: number;
+    paid_by: number;
+    split_type: "equal" | "percentage";
+    splits: Split[];
+  }
