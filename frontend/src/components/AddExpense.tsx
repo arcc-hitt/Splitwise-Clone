@@ -1,168 +1,172 @@
-import { useState } from "react";
-import { api } from "../api";
-import type { ExpenseCreate, SplitType, Split } from "../types";
+import { useEffect, useState } from 'react';
+import { useAddExpense } from '../hooks/useAddExpense';
+import { Spinner } from './layout/Spinner';
+import type { ExpenseCreate, SplitType } from '../types';
+import { api } from '../api';
 
 export default function AddExpense() {
-  const [form, setForm] = useState<Omit<ExpenseCreate, "splits"> & { splitsRaw: string }>({
-    description: "",
-    amount: 0,
-    paid_by: 0,
-    split_type: "equal",
-    splitsRaw: "",
-  });
-  const [errors, setErrors] = useState<Record<string, string>>({});
-  const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
-  const [groupId, setGroupId] = useState("");
+  const { addExpense, loading, error } = useAddExpense();
 
-  const validate = (): boolean => {
-    const errs: typeof errors = {};
-    if (!/^\d+$/.test(groupId)) errs.groupId = "Enter a valid group ID.";
-    if (!form.description.trim()) errs.description = "Description is required.";
-    if (form.amount <= 0) errs.amount = "Amount must be greater than zero.";
-    if (form.paid_by <= 0) errs.paid_by = "Payer user ID is required.";
+  const [groupId, setGroupId] = useState('');
+  const [description, setDescription] = useState('');
+  const [amount, setAmount] = useState('');
+  const [paidBy, setPaidBy] = useState('');
+  const [splitType, setSplitType] = useState<SplitType>('equal');
+  const [splitsRaw, setSplitsRaw] = useState('');
+  const [formError, setFormError] = useState<Record<string,string>>({});
+  const [groupMembers, setGroupMembers] = useState<number[] | null>(null);
+  const [groupFetchError, setGroupFetchError] = useState<string | null>(null);
 
-    if (form.split_type === "percentage") {
-      const parts = form.splitsRaw.split(",").map((s) => s.trim());
-      if (
-        parts.length === 0 ||
-        parts.some((p) => {
-          const [u, pct] = p.split(":");
-          return !/^\d+$/.test(u) || isNaN(Number(pct));
-        })
-      ) {
-        errs.splitsRaw = "Use format `id:percent`, comma-separated.";
+
+  // Whenever groupId is valid, fetch its members
+  useEffect(() => {
+    setGroupMembers(null);
+    setGroupFetchError(null);
+    if (!/^[1-9]\d*$/.test(groupId)) return;
+
+    api.get<{ user_ids: number[] }>(`/groups/${groupId}`)
+      .then(res => setGroupMembers(res.data.user_ids))
+      .catch(err => {
+        if (err.response?.status === 404) {
+          setGroupFetchError('Group not found');
+        } else {
+          setGroupFetchError('Error loading group');
+        }
+      })
+  }, [groupId]);
+
+
+  const validate = () => {
+    const e: typeof formError = {};
+    if (!/^[1-9]\d*$/.test(groupId)) {
+      e.groupId = 'Enter a valid Group ID';
+    } else if (groupFetchError) {
+      e.groupId = groupFetchError;
+    }
+    if (!description.trim()) e.description = 'Description is required';
+    if (!(+amount > 0)) e.amount = 'Amount must be greater than 0';
+    if (!/^[1-9]\d*$/.test(paidBy)) {
+      e.paidBy = 'Enter a valid User ID';
+    } else if (groupMembers && !groupMembers.includes(+paidBy)) {
+      e.paidBy = `User ${paidBy} is not in Group ${groupId}`;
+    }
+    if (splitType==='percentage') {
+      const parts = splitsRaw.split(',');
+      if (!parts.length || parts.some(p => !/^\d+:\d+(\.\d+)?$/.test(p.trim()))) {
+        e.splitsRaw = 'Format: userId:percent,...';
       } else {
-        const total = parts.reduce((sum, p) => sum + Number(p.split(":")[1]), 0);
-        if (total !== 100) errs.splitsRaw = "Percentages must add up to 100.";
+        const total = parts.reduce((sum,p)=>sum + +p.split(':')[1],0);
+        if (Math.abs(total-100)>0.01) e.splitsRaw = '% must sum to 100';
       }
     }
-
-    setErrors(errs);
-    return Object.keys(errs).length === 0;
+    setFormError(e);
+    return !Object.keys(e).length;
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handle = (e: React.FormEvent) => {
     e.preventDefault();
-    setMessage(null);
     if (!validate()) return;
-
     const payload: ExpenseCreate = {
-      description: form.description.trim(),
-      amount: form.amount,
-      paid_by: form.paid_by,
-      split_type: form.split_type as SplitType,
+      description: description.trim(),
+      amount: +amount,
+      paid_by: +paidBy,
+      split_type: splitType,
     };
-
-    if (form.split_type === "percentage") {
-      payload.splits = form.splitsRaw.split(",").map<Split>((s) => {
-        const [uid, pct] = s.split(":");
-        return { user_id: Number(uid), share: Number(pct) };
+    if (splitType==='percentage') {
+      payload.splits = splitsRaw.split(',').map(s => {
+        const [u, pct] = s.trim().split(':');
+        return { user_id: +u, share: +pct };
       });
     }
-
-    try {
-      await api.post(`/groups/${groupId}/expenses/`, payload);
-      setMessage({ type: "success", text: "Expense added successfully." });
-      setGroupId("");
-      setForm({ description: "", amount: 0, paid_by: 0, split_type: "equal", splitsRaw: "" });
-      setErrors({});
-    } catch (err: any) {
-      setMessage({ type: "error", text: err.response?.data?.detail || err.message });
-    }
+    addExpense(+groupId, payload);
+    setDescription(''); setAmount(''); setPaidBy(''); setSplitsRaw('');
   };
 
   return (
-    <div className="max-w-md mx-auto p-4 space-y-4">
-      <h2 className="text-xl mb-4">Add Expense</h2>
-      <form onSubmit={handleSubmit} className="space-y-4">
+    <div className="max-w-md mx-auto space-y-6">
+      <h1 className="text-2xl font-semibold">Add Expense</h1>
+      <form onSubmit={handle} className="space-y-4">
+        {loading && <Spinner />}
+
         <div>
           <label className="block mb-1">Group ID</label>
           <input
-            className={`w-full p-2 border rounded ${errors.groupId ? "border-red-500" : ""}`}
-            value={groupId}
-            onChange={(e) => setGroupId(e.target.value)}
+            className={`w-full p-2 border rounded ${formError.groupId?'border-red-500':''}`}
             placeholder="e.g. 1"
+            value={groupId}
+            onChange={e=>setGroupId(e.target.value)}
           />
-          {errors.groupId && <p className="text-red-600 text-sm mt-1">{errors.groupId}</p>}
+          {formError.groupId && <p className="text-red-600 text-sm">{formError.groupId}</p>}
         </div>
 
         <div>
           <label className="block mb-1">Description</label>
           <input
-            className={`w-full p-2 border rounded ${errors.description ? "border-red-500" : ""}`}
-            value={form.description}
-            onChange={(e) => setForm({ ...form, description: e.target.value })}
+            className={`w-full p-2 border rounded ${formError.description?'border-red-500':''}`}
+            placeholder="e.g. Dinner at restaurant"
+            value={description}
+            onChange={e=>setDescription(e.target.value)}
           />
-          {errors.description && <p className="text-red-600 text-sm mt-1">{errors.description}</p>}
+          {formError.description && <p className="text-red-600 text-sm">{formError.description}</p>}
         </div>
 
-        <div>
-          <label className="block mb-1">Amount</label>
-          <input
-            type="number"
-            className={`w-full p-2 border rounded ${errors.amount ? "border-red-500" : ""}`}
-            value={form.amount}
-            onChange={(e) => setForm({ ...form, amount: Number(e.target.value) })}
-            placeholder="e.g. 2500"
-          />
-          {errors.amount && <p className="text-red-600 text-sm mt-1">{errors.amount}</p>}
-        </div>
-
-        <div>
-          <label className="block mb-1">Paid By (User ID)</label>
-          <input
-            type="number"
-            className={`w-full p-2 border rounded ${errors.paid_by ? "border-red-500" : ""}`}
-            value={form.paid_by}
-            onChange={(e) => setForm({ ...form, paid_by: Number(e.target.value) })}
-            placeholder="e.g. 2"
-          />
-          {errors.paid_by && <p className="text-red-600 text-sm mt-1">{errors.paid_by}</p>}
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label className="block mb-1">Amount</label>
+            <input
+              type="number"
+              className={`w-full p-2 border rounded ${formError.amount?'border-red-500':''}`}
+              value={amount}
+              onChange={e=>setAmount(e.target.value)}
+            />
+            {formError.amount && <p className="text-red-600 text-sm">{formError.amount}</p>}
+          </div>
+          <div>
+            <label className="block mb-1">Paid By (User ID)</label>
+            <input
+              className={`w-full p-2 border rounded ${formError.paidBy?'border-red-500':''}`}
+              value={paidBy}
+              onChange={e=>setPaidBy(e.target.value)}
+            />
+            {formError.paidBy && <p className="text-red-600 text-sm">{formError.paidBy}</p>}
+          </div>
         </div>
 
         <div>
           <label className="block mb-1">Split Type</label>
           <select
             className="w-full p-2 border rounded"
-            value={form.split_type}
-            onChange={(e) => setForm({ ...form, split_type: e.target.value as SplitType })}
+            value={splitType}
+            onChange={e=>setSplitType(e.target.value as SplitType)}
           >
             <option value="equal">Equal</option>
             <option value="percentage">Percentage</option>
           </select>
         </div>
 
-        {form.split_type === "percentage" && (
+        {splitType==='percentage' && (
           <div>
-            <label className="block mb-1">Splits (id:percent,...)</label>
+            <label className="block mb-1">Splits <span className="text-gray-500 text-xs">(id:percent,...)</span> </label>
             <input
-              className={`w-full p-2 border rounded ${errors.splitsRaw ? "border-red-500" : ""}`}
-              value={form.splitsRaw}
-              onChange={(e) => setForm({ ...form, splitsRaw: e.target.value })}
+              className={`w-full p-2 border rounded ${formError.splitsRaw?'border-red-500':''}`}
               placeholder="e.g. 1:50,2:30,3:20"
+              value={splitsRaw}
+              onChange={e=>setSplitsRaw(e.target.value)}
             />
-            {errors.splitsRaw && <p className="text-red-600 text-sm mt-1">{errors.splitsRaw}</p>}
+            {formError.splitsRaw && <p className="text-red-600 text-sm">{formError.splitsRaw}</p>}
           </div>
         )}
 
         <button
           type="submit"
-          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded cursor-pointer"
+          disabled={loading}
+          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded disabled:opacity-50 cursor-pointer"
         >
-          Add Expense
+          Add
         </button>
+
+        {error && <p className="text-red-600">{error}</p>}
       </form>
-      {message && (
-        <div
-          className={`p-3 rounded ${
-            message.type === "success"
-              ? "bg-green-100 text-green-800"
-              : "bg-red-100 text-red-800"
-          }`}
-        >
-          {message.text}
-        </div>
-      )}
     </div>
-  );
+);
 }
