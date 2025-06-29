@@ -45,6 +45,17 @@ def get_group(group_id: int, db: Session = Depends(get_db)):
         total_expenses=total
     )
 
+@router.delete("/{group_id}", status_code=204)
+def delete_group(
+    group_id: int,
+    db: Session = Depends(get_db)
+):
+    grp = db.query(models.Group).get(group_id)
+    if not grp:
+        raise HTTPException(404, "Group not found")
+    db.delete(grp)
+    db.commit()
+
 @router.get('/', response_model=List[schemas.Group])
 def list_groups(db: Session = Depends(get_db)):
     groups = db.query(models.Group).all()
@@ -93,7 +104,7 @@ def update_group(
             if user and not user.groups:
                 db.delete(user)
         db.commit()
-        
+
     db.refresh(grp)
     return schemas.Group(
         id=grp.id,

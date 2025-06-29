@@ -5,12 +5,14 @@ import { Spinner } from './layout/Spinner';
 import type { GroupCreate } from '../types';
 import { useUpdateGroup } from '../hooks/useUpdateGroup';
 import Modal from './Modal';
+import { useDeleteGroup } from '../hooks/useDeleteGroup';
 
 export default function CreateGroup() {
   // --- Hooks ---
   const { groups, loading: loadingGroups, error: errGroups, refresh } = useGroups();
   const { createGroup, loading: creating, error: errCreate } = useCreateGroup(refresh);
   const { update: updateGroup, loading: updating, error: errUpdate } = useUpdateGroup(refresh);
+  const { deleteGroup, loading: deleting, error: errDelete } = useDeleteGroup(refresh);
 
   // --- Create form state ---
   const [name, setName] = useState('');
@@ -26,6 +28,10 @@ export default function CreateGroup() {
   const [delModalGroupId, setDelModalGroupId] = useState<number | null>(null);
   const [delInput, setDelInput] = useState('');
   const [delError, setDelError] = useState<string | null>(null);
+
+  // --- Delete Group modal state ---
+  const [delGrpModalId, setDelGrpModalId] = useState<number|null>(null);
+  const [delGrpError, setDelGrpError] = useState<string|null>(null);
 
   // --- Create form handlers ---
   const validate = () => {
@@ -63,6 +69,8 @@ export default function CreateGroup() {
   const closeAdd = () => setAddModalGroupId(null);
   const openDel = (gid: number) => { setDelModalGroupId(gid); setDelInput(''); setDelError(null); };
   const closeDel = () => setDelModalGroupId(null);
+  const openDelGroup = (gid: number) => { setDelGrpModalId(gid); setDelGrpError(null); };
+  const closeDelGroup = () => setDelGrpModalId(null);
 
   // --- Handle Add Users ---
   const handleAddUsers = () => {
@@ -105,6 +113,14 @@ export default function CreateGroup() {
     updateGroup(delModalGroupId, updated)
       .then(() => closeDel())
       .catch(() => setDelError(errUpdate || 'Failed to delete.'));
+  };
+
+  // --- Handle Delete Group ---
+  const handleDeleteGroup = () => {
+    if (delGrpModalId === null) return;
+    deleteGroup(delGrpModalId)
+      .then(closeDelGroup)
+      .catch(() => setDelGrpError(errDelete || 'Failed to delete.'));
   };
 
   return (
@@ -178,6 +194,9 @@ export default function CreateGroup() {
                   >
                     Delete Users
                   </button>
+                  <button onClick={()=>openDelGroup(g.id)} className="text-gray-800 hover:underline cursor-pointer">
+                    Delete Group
+                  </button>
                 </div>
               </li>
             ))}
@@ -245,6 +264,30 @@ export default function CreateGroup() {
           onChange={e=>setDelInput(e.target.value)}
         />
         {delError && <p className="text-red-600 text-sm mt-1">{delError}</p>}
+      </Modal>
+
+      {/* Delete Group Modal */}
+      <Modal
+        isOpen={delGrpModalId !== null}
+        title={`Delete Group #${delGrpModalId}?`}
+        onClose={closeDelGroup}
+        footer={
+          <>
+            <button onClick={closeDelGroup} className="px-4 py-2 rounded border cursor-pointer">Cancel</button>
+            <button
+              onClick={handleDeleteGroup}
+              disabled={deleting}
+              className="px-4 py-2 rounded bg-gray-800 text-white hover:bg-gray-900 disabled:opacity-50 cursor-pointer"
+            >
+              {deleting?'Deleting…':'Delete'}
+            </button>
+          </>
+        }
+      >
+        <p className="text-sm text-gray-700">
+          This will remove the group and all its data. This action cannot be undone.
+        </p>
+        {delGrpError && <p className="text-red-600 text-sm mt-1">{delGrpError}</p>}
       </Modal>
     </div>
   );
