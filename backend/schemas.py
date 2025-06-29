@@ -47,3 +47,7 @@ class Group(BaseModel):
 
     class Config:
         orm_mode = True
+
+class GroupUpdate(BaseModel):
+    name: str | None = None
+    user_ids: List[int] | None = None
