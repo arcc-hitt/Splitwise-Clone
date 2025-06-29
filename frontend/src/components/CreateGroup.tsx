@@ -3,14 +3,21 @@ import { useGroups } from '../hooks/useGroups';
 import { useCreateGroup } from '../hooks/useCreateGroup';
 import { Spinner } from './layout/Spinner';
 import type { GroupCreate } from '../types';
+import { useUpdateGroup } from '../hooks/useUpdateGroup';
+import Modal from './Modal';
 
 export default function CreateGroup() {
   const { groups, loading: loadingGroups, error: errGroups, refresh } = useGroups();
   const { createGroup, loading: creating, error: errCreate } = useCreateGroup(refresh);
+  const { update: updateGroup, loading: updating, error: errUpdate } = useUpdateGroup(refresh);
 
   const [name, setName] = useState('');
   const [userIds, setUserIds] = useState('');
   const [formError, setFormError] = useState<{ name?: string; userIds?: string }>({});
+  
+  const [modalGroupId, setModalGroupId] = useState<number | null>(null);
+  const [modalInput, setModalInput] = useState('');
+  const [modalError, setModalError] = useState<string | null>(null);
 
   const validate = () => {
     const e: typeof formError = {};
@@ -40,6 +47,41 @@ export default function CreateGroup() {
     createGroup(payload);
     setName('');
     setUserIds('');
+  };
+
+  const openModal = (gid: number) => {
+    setModalGroupId(gid);
+    setModalInput('');
+    setModalError(null);
+  };
+  const closeModal = () => setModalGroupId(null);
+
+  // --- Handler for modal “Add Users” ---
+  const handleAddUsers = () => {
+    if (!modalGroupId) return;
+    if (!/^\d+(,\d+)*$/.test(modalInput.trim())) {
+      setModalError('Enter comma-separated numeric IDs.');
+      return;
+    }
+    const ids = modalInput.split(',').map(s => +s.trim());
+    const group = groups.find(g => g.id === modalGroupId);
+    if (!group) {
+      setModalError('Group not found.');
+      return;
+    }
+    const alreadyPresent = ids.filter(id => group.user_ids.includes(id));
+    if (alreadyPresent.length > 0) {
+      setModalError(
+        `User ID${alreadyPresent.length > 1 ? 's' : ''} ${alreadyPresent.join(', ')} already ${alreadyPresent.length > 1 ? 'exist' : 'exists'} in the group.`
+      );
+      return;
+    }
+    updateGroup(modalGroupId, ids);
+    if (!errUpdate) {
+      closeModal();
+    } else {
+      setModalError(errUpdate);
+    }
   };
 
   return (
@@ -89,12 +131,23 @@ export default function CreateGroup() {
         ) : groups.length ? (
           <ul className="space-y-4">
             {groups.map((g) => (
-              <li key={g.id} className="p-4 border rounded bg-gray-50">
-                <div className="flex justify-between">
-                  <span className="font-medium">#{g.id} {g.name}</span>
-                  <span>Total ₹{g.total_expenses.toFixed(2)}</span>
+              <li
+                key={g.id}
+                className="p-4 border rounded bg-gray-50 flex justify-between items-start"
+              >
+                <div>
+                  <div className="font-medium">#{g.id} {g.name}</div>
+                  <p className="text-sm">
+                    Members: {g.user_ids.join(', ')}<br/>
+                    Total: ₹{g.total_expenses.toFixed(2)}
+                  </p>
                 </div>
-                <p className="text-sm">Members: {g.user_ids.join(', ')}</p>
+                <button
+                  onClick={() => openModal(g.id)}
+                  className="text-blue-600 hover:underline cursor-pointer"
+                >
+                  Add Users
+                </button>
               </li>
             ))}
           </ul>
@@ -102,6 +155,39 @@ export default function CreateGroup() {
           <p className="text-gray-600">No groups have been created yet.</p>
         )}
       </section>
+
+      {/* Modal for Adding Users */}
+      <Modal
+        isOpen={modalGroupId !== null}
+        title={`Add Users to Group#${modalGroupId}`}
+        onClose={closeModal}
+        footer={
+          <>
+            <button
+              onClick={closeModal}
+              className="px-4 py-2 rounded border cursor-pointer"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleAddUsers}
+              disabled={updating}
+              className="px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 cursor-pointer"
+            >
+              {updating ? 'Adding…' : 'Add'}
+            </button>
+          </>
+        }
+      >
+        <input
+          className={`w-full p-2 border rounded ${modalError ? 'border-red-500' : ''}`}
+          placeholder="e.g. 4,5,6"
+          value={modalInput}
+          onChange={e => setModalInput(e.target.value)}
+        />
+        {modalError && <p className="text-red-600 text-sm mt-1">{modalError}</p>}
+        {errUpdate && !modalError && <p className="text-red-600 text-sm mt-1">{errUpdate}</p>}
+      </Modal>
     </div>
   );
 }

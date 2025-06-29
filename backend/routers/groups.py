@@ -1,7 +1,7 @@
 from typing import List
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-import models, schemas, database
+import models, schemas
 from routers.deps import get_db
 
 router = APIRouter(prefix='/groups', tags=['groups'])
@@ -57,3 +57,36 @@ def list_groups(db: Session = Depends(get_db)):
       )
       for g in groups
     ]
+
+@router.patch("/{group_id}", response_model=schemas.Group)
+def update_group(
+    group_id: int,
+    payload: schemas.GroupUpdate,
+    db: Session = Depends(get_db)
+):
+    grp = db.query(models.Group).get(group_id)
+    if not grp:
+        raise HTTPException(404, "Group not found")
+
+    if payload.name is not None:
+        grp.name = payload.name
+
+    if payload.user_ids is not None:
+        existing_ids = {u.id for u in grp.users}
+        desired_ids = existing_ids.union(payload.user_ids)
+        users = db.query(models.User).filter(models.User.id.in_(desired_ids)).all()
+        existing_ids = {u.id for u in users}
+        for uid in payload.user_ids:
+           if uid not in existing_ids:
+               new_user = models.User(id=uid, name=f"User {uid}")
+               db.add(new_user)
+               users.append(new_user)
+        grp.users = users
+    db.commit()
+    db.refresh(grp)
+    return schemas.Group(
+        id=grp.id,
+        name=grp.name,
+        user_ids=[u.id for u in grp.users],
+        total_expenses=sum(e.amount for e in grp.expenses)
+    )
