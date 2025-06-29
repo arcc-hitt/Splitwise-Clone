@@ -13,6 +13,15 @@ export interface ExpenseCreate {
   splits?: Split[];
 }
 
+export interface Expense {
+  id: number;
+  description: string;
+  amount: number;
+  paid_by: number;
+  split_type: SplitType;
+  splits: Split[];
+}
+
 export interface GroupCreate {
   name: string;
   user_ids: number[];
@@ -25,11 +34,3 @@ export interface Group {
   total_expenses: number;
 }
 
-export interface Expense {
-    id: number;
-    description: string;
-    amount: number;
-    paid_by: number;
-    split_type: "equal" | "percentage";
-    splits: Split[];
-  }
