@@ -12,7 +12,9 @@ export function useUpdateGroup(onSuccess: () => void) {
       await api.patch(`/groups/${groupId}`, { user_ids: userIds });
       onSuccess();
     } catch (e: any) {
-      setError(e.response?.data?.detail || e.message);
+      const msg = e.response?.data?.detail || e.message;
+      setError(msg);
+      throw new Error(msg); 
     } finally {
       setLoading(false);
     }

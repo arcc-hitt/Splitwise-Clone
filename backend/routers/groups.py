@@ -72,17 +72,28 @@ def update_group(
         grp.name = payload.name
 
     if payload.user_ids is not None:
-        existing_ids = {u.id for u in grp.users}
-        desired_ids = existing_ids.union(payload.user_ids)
-        users = db.query(models.User).filter(models.User.id.in_(desired_ids)).all()
-        existing_ids = {u.id for u in users}
-        for uid in payload.user_ids:
-           if uid not in existing_ids:
-               new_user = models.User(id=uid, name=f"User {uid}")
-               db.add(new_user)
-               users.append(new_user)
+        users = db.query(models.User).filter(models.User.id.in_(payload.user_ids)).all()
+        found_ids = {u.id for u in users}
+        missing = [uid for uid in payload.user_ids if uid not in found_ids]
+        for uid in missing:
+            new_u = models.User(id=uid, name=f"User {uid}")
+            db.add(new_u)
+            users.append(new_u)
+        db.flush()
+
+        # Store old user ids before update
+        old_user_ids = set(u.id for u in grp.users)
         grp.users = users
-    db.commit()
+        db.commit()
+
+        # Remove users from User table if they are not in any group
+        removed_ids = old_user_ids - set(payload.user_ids)
+        for uid in removed_ids:
+            user = db.query(models.User).get(uid)
+            if user and not user.groups:
+                db.delete(user)
+        db.commit()
+        
     db.refresh(grp)
     return schemas.Group(
         id=grp.id,
