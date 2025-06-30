@@ -34,3 +34,12 @@ export interface Group {
   total_expenses: number;
 }
 
+export interface Settlement {
+  id: number;
+  from_user: number;
+  to_user: number;
+  amount: number;
+  paid_at: string;
+}
+
+export type BalancesMap = Record<string, number>;
