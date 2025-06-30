@@ -184,17 +184,23 @@ export default function CreateGroup() {
                 <div className="flex flex-col space-y-1 items-end">
                   <button
                     onClick={() => openAdd(g.id)}
-                    className="text-blue-600 hover:underline cursor-pointer"
+                    disabled={updating}
+                    className="text-blue-600 hover:underline cursor-pointer disabled:opacity-50 disabled:no-underline"
                   >
                     Add Users
                   </button>
                   <button
                     onClick={() => openDel(g.id)}
-                    className="text-red-600 hover:underline cursor-pointer"
+                    disabled={updating || g.user_ids.length<=1}
+                    className="text-red-600 hover:underline cursor-pointer disabled:opacity-50 disabled:no-underline"
                   >
                     Delete Users
                   </button>
-                  <button onClick={()=>openDelGroup(g.id)} className="text-gray-800 hover:underline cursor-pointer">
+                  <button
+                    onClick={() => openDelGroup(g.id)}
+                    disabled={deleting}
+                    className="text-gray-800 hover:underline cursor-pointer disabled:opacity-50 disabled:no-underline"
+                  >
                     Delete Group
                   </button>
                 </div>

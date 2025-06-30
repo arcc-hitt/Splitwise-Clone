@@ -101,7 +101,10 @@ def update_group(
         removed_ids = old_user_ids - set(payload.user_ids)
         for uid in removed_ids:
             user = db.query(models.User).get(uid)
+            expense_ref = db.query(models.Expense).filter(models.Expense.paid_by == uid).first()
             if user and not user.groups:
+                if expense_ref:
+                    continue
                 db.delete(user)
         db.commit()
 
