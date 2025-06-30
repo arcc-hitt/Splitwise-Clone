@@ -1,3 +1,4 @@
+from datetime import datetime
 from pydantic import BaseModel
 from enum import Enum
 from typing import List, Optional
@@ -51,3 +52,18 @@ class Group(BaseModel):
 class GroupUpdate(BaseModel):
     name: str | None = None
     user_ids: List[int] | None = None
+
+class SettlementCreate(BaseModel):
+    from_user: int
+    to_user: int
+    amount: float
+
+class SettlementOut(BaseModel):
+    id: int
+    from_user: int
+    to_user: int
+    amount: float
+    paid_at: datetime
+
+    class Config:
+        orm_mode = True

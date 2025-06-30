@@ -1,4 +1,5 @@
-from sqlalchemy import Column, Integer, String, Float, ForeignKey, Enum, Table
+from sqlalchemy import Column, Integer, String, Float, ForeignKey, Enum, Table, DateTime
+from datetime import datetime
 from sqlalchemy.orm import relationship
 from database import Base
 import enum
@@ -20,6 +21,7 @@ class Group(Base):
     name = Column(String, nullable=False)
     users = relationship('User', secondary=group_user, back_populates='groups')
     expenses = relationship('Expense', back_populates='group')
+    settlements = relationship("Settlement", back_populates="group", cascade="all, delete-orphan")
 
 class User(Base):
     __tablename__ = 'users'
@@ -47,3 +49,15 @@ class Split(Base):
     share = Column(Float)  # amount or percentage
 
     expense = relationship('Expense', back_populates='splits')
+
+class Settlement(Base):
+    __tablename__ = "settlements"
+
+    id = Column(Integer, primary_key=True, index=True)
+    group_id = Column(Integer, ForeignKey("groups.id", ondelete="CASCADE"), nullable=False)
+    from_user = Column(Integer, ForeignKey("users.id"), nullable=False)
+    to_user = Column(Integer, ForeignKey("users.id"), nullable=False)
+    amount = Column(Float, nullable=False)
+    paid_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+
+    group = relationship("Group", back_populates="settlements")

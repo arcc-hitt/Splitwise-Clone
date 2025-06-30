@@ -6,6 +6,7 @@ import database, models
 from routers.groups import router as groups_router
 from routers.expenses import router as expenses_router
 from routers.balances import router as balances_router
+from routers.settlements import router as settlements_router
 
 # Initialize FastAPI app
 app = FastAPI(
@@ -34,6 +35,7 @@ models.Base.metadata.create_all(bind=database.engine)
 app.include_router(groups_router)
 app.include_router(expenses_router)
 app.include_router(balances_router)
+app.include_router(settlements_router)
 
 # Root endpoint
 @app.get("/")

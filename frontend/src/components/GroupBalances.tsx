@@ -2,11 +2,16 @@ import { useState } from 'react';
 import { useGroupBalances } from '../hooks/useGroupBalances';
 import { Spinner } from './layout/Spinner';
 import type { Expense } from '../types';
+import { api } from '../api';
+
+type Settlement = { from: string; to: string; amount: number };
 
 export default function GroupBalances() {
-  const { group, balances, expenses, settlements, loading, error, loadGroup } = useGroupBalances();
+  const { group, balances, expenses, loading, error, loadGroup, suggestions } = useGroupBalances();
   const [groupId, setGroupId] = useState('');
   const [inputError, setInputError] = useState<string | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
+  const [actionLoading, setActionLoading] = useState(false);
 
   const handle = () => {
     if (!/^[1-9]\d*$/.test(groupId)) {
@@ -15,6 +20,24 @@ export default function GroupBalances() {
     }
     setInputError(null);
     loadGroup(+groupId);
+  };
+
+  const markAsPaid = async (s: { from: string; to: string; amount: number }) => {
+    if (!group) return;
+    setActionLoading(true);
+    setActionError(null);
+    try {
+      await api.post<Settlement>(`/groups/${group.id}/settlements/`, {
+        from_user: +s.from,
+        to_user: +s.to,
+        amount: s.amount,
+      });
+      await loadGroup(group.id);
+    } catch (e: any) {
+      setActionError(e.response?.data?.detail || e.message);
+    } finally {
+      setActionLoading(false);
+    }
   };
 
   return (
@@ -26,7 +49,7 @@ export default function GroupBalances() {
           className="flex-1 p-2 border rounded"
           placeholder="Group ID"
           value={groupId}
-          onChange={e=>setGroupId(e.target.value)}
+          onChange={e => setGroupId(e.target.value)}
         />
         <button
           onClick={handle}
@@ -55,9 +78,9 @@ export default function GroupBalances() {
                     <div className="flex justify-between">
                       <span>#{e.id} {e.description}</span>
                       <span>₹{e.amount.toFixed(2)} paid by User {e.paid_by}</span>
-                      </div>
+                    </div>
 
-                      <div className="mt-2 text-sm italic">
+                    <div className="mt-2 text-sm italic">
                       {e.split_type === "equal" ? "Equal Split" : "Percentage Split"}
                     </div>
                     <div className="mt-2">
@@ -88,8 +111,8 @@ export default function GroupBalances() {
             {Object.entries(balances).map(([u, bal]) => (
               <div key={u} className="flex justify-between py-1 border-b last:border-0">
                 <span>User {u}</span>
-                <span className={bal>0?'text-green-600':bal<0?'text-red-600':''}>
-                  {bal>0?'+':''}₹{bal.toFixed(2)}
+                <span className={bal > 0 ? 'text-green-600' : bal < 0 ? 'text-red-600' : ''}>
+                  {bal > 0 ? '+' : ''}₹{bal.toFixed(2)}
                 </span>
               </div>
             ))}
@@ -97,16 +120,27 @@ export default function GroupBalances() {
 
           <section className="bg-yellow-50 p-4 rounded">
             <h2 className="font-semibold mb-2">Settle-Up</h2>
-            {settlements.length ? (
+            {actionError && <p className="text-red-600">{actionError}</p>}
+            {actionLoading && <Spinner />}
+            {suggestions.length ? (
               <ul className="list-disc list-inside">
-                {settlements.map((s,i)=>(
-                  <li key={i}>
-                    User {s.from} → User {s.to}: ₹{s.amount.toFixed(2)}
+                {suggestions.map((s, i) => (
+                  <li key={i} className="flex justify-between items-center">
+                    <span>
+                      User {s.from} → User {s.to}: ₹{s.amount.toFixed(2)}
+                    </span>
+                    <button
+                      onClick={() => markAsPaid(s)}
+                      disabled={actionLoading}
+                      className="text-sm text-green-700 hover:underline cursor-pointer"
+                    >
+                      Mark as paid
+                    </button>
                   </li>
                 ))}
               </ul>
             ) : (
-              <p className="text-green-700">All settled!</p>
+              <p className="text-gray-600">No outstanding settlements.</p>
             )}
           </section>
         </div>
