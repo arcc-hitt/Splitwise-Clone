@@ -4,6 +4,7 @@ import CreateGroup from './components/CreateGroup';
 import AddExpense from './components/AddExpense';
 import GroupBalances from './components/GroupBalances';
 import UserBalances from './components/UserBalances';
+import Chatbot from './components/ChatBot';
 
 function App() {
   return (
@@ -14,6 +15,7 @@ function App() {
           <Route path="add-expense" element={<AddExpense />} />
           <Route path="group-balances" element={<GroupBalances />} />
           <Route path="user-balances" element={<UserBalances />} />
+          <Route path="chat" element={<Chatbot userId={1} />} />
         </Route>
       </Routes>
     </BrowserRouter>
