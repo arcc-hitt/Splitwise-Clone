@@ -9,6 +9,7 @@ export function AppShell() {
           <Link to="/add-expense" className="hover:underline">Add Expense</Link>
           <Link to="/group-balances" className="hover:underline">Group Balances</Link>
           <Link to="/user-balances" className="hover:underline">My Balances</Link>
+          <Link to="/chat" className="hover:underline">Chatbot</Link>
         </nav>
       </header>
       <main className="flex-grow container mx-auto p-4">
