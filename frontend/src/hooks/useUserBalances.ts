@@ -12,8 +12,17 @@ interface GroupData {
   settlements: Settlement[];
 }
 
+const STORAGE_KEY = (uid: number) => `splitwise:user:${uid}:data`;
+
 export function useUserBalances() {
-  const [data, setData] = useState<GroupData[]>([]);
+  const [data, setData] = useState<GroupData[]>(() => {
+    const last = localStorage.getItem('splitwise:lastUserId');
+    if (last) {
+      const json = localStorage.getItem(STORAGE_KEY(+last));
+      return json ? JSON.parse(json) : [];
+    }
+    return [];
+  });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -58,6 +67,8 @@ export function useUserBalances() {
         })
       );
       setData(all);
+      localStorage.setItem(STORAGE_KEY(userId), JSON.stringify(all));
+      localStorage.setItem('splitwise:lastUserId', String(userId));
     } catch (e: any) {
       setError(e.response?.status===404 ? 'User not found.' : e.message);
     } finally {
