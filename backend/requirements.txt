@@ -1,0 +1,8 @@
+fastapi
+uvicorn[standard]
+sqlalchemy
+psycopg2-binary
+pydantic
+transformers
+torch
+# …plus any others you use (testcontainers, alembic, etc.)
