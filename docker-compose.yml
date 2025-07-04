@@ -31,11 +31,9 @@ services:
     depends_on:
       db:
         condition: service_healthy
-    env_file:
-      - .env
     environment:
-      - DATABASE_URL
-      - HF_TOKEN 
+      DATABASE_URL: "${DATABASE_URL}"
+      HF_TOKEN:    "${HF_TOKEN}"
 
   frontend:
     build:
