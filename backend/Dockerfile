@@ -41,9 +41,8 @@ ENV PORT=8000
 # Expose the port
 EXPOSE ${PORT}
 
-# Run the application with gunicorn
-CMD gunicorn main:app --workers 2 --worker-class uvicorn.workers.UvicornWorker --bind 0.0.0.0:${PORT}
+# Make the startup script executable
+RUN chmod +x /app/start.sh
 
-# 5. Expose port and default command
-EXPOSE 8000
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+# Run the startup script
+CMD ["/app/start.sh"]
