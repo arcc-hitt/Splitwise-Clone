@@ -1,6 +1,11 @@
 import axios from "axios";
 
-const apiBaseUrl = import.meta.env.VITE_API_URL || "http://localhost:8000";
+let apiBaseUrl = import.meta.env.VITE_API_URL || "http://localhost:8000";
+
+// Ensure HTTPS in production
+if (import.meta.env.PROD && apiBaseUrl.startsWith('http:')) {
+  apiBaseUrl = apiBaseUrl.replace('http:', 'https:');
+}
 
 export const api = axios.create({
   baseURL: apiBaseUrl,
