@@ -21,16 +21,16 @@ origins = [
     "http://localhost:5173",  # Local development
     "http://localhost:3000",  # Local production build
     "https://*.koyeb.app",  # Allow Koyeb domains
-    "https://splitwise-clone-pied.vercel.app/",  # Vercel production domain
+    "https://splitwise-clone-pied.vercel.app",  # Vercel production domain
     "https://*.vercel.app",  # All Vercel preview deployments
 ]
 
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_credentials=False,
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allow_headers=["Content-Type", "Accept", "Authorization"],
 )
 
 # Create all database tables
