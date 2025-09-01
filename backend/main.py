@@ -19,6 +19,7 @@ app = FastAPI(
 # Configure CORS
 origins = [
     "http://localhost:5173",
+    "https://*.koyeb.app",  # Allow Koyeb domains
 ]
 
 app.add_middleware(
@@ -43,6 +44,11 @@ app.include_router(chat_router)
 @app.get("/")
 def read_root():
     return {"message": "Welcome to the Splitwise Clone API"}
+
+# Health check endpoint
+@app.get("/health")
+def health_check():
+    return {"status": "healthy"}
 
 # To run:
 #   uvicorn main:app --reload --host 0.0.0.0 --port 8000

@@ -18,6 +18,15 @@ RUN pip install --no-cache-dir -r requirements.txt
 # 4. Copy application code
 COPY . /app
 
+# 5. Set environment variables
+ENV PORT=8000
+
+# 6. Expose the port
+EXPOSE ${PORT}
+
+# 7. Run the application with gunicorn
+CMD gunicorn main:app --workers 4 --worker-class uvicorn.workers.UvicornWorker --bind 0.0.0.0:${PORT}
+
 # 5. Expose port and default command
 EXPOSE 8000
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
