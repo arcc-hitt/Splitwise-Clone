@@ -15,7 +15,7 @@ export function useGroups() {
   const fetchGroups = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await api.get<Group[]>('groups');
+      const res = await api.get<Group[]>('/groups/');
       setGroups(res.data);
       localStorage.setItem(STORAGE_KEY, JSON.stringify(res.data));
     } catch (e: any) {
