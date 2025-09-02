@@ -40,7 +40,7 @@ export function useUserBalances() {
       const all = await Promise.all(
         entries.map(async ([gid, net]) => {
           const [gRes, gbRes, eRes] = await Promise.all([
-            api.get<Group>(`/groups/${gid}/`),
+            api.get<Group>(`/groups/${gid}`),
             api.get<BalancesMap>(`/groups/${gid}/balances/`),
             api.get<Expense[]>(`/groups/${gid}/expenses/`),
           ]);

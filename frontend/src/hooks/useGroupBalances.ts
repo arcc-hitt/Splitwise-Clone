@@ -18,7 +18,7 @@ export function useGroupBalances() {
     setError(null);
     try {
       const [gRes, bRes, eRes, sRes] = await Promise.all([
-        api.get<Group>(`/groups/${groupId}/`),
+        api.get<Group>(`/groups/${groupId}`),
         api.get<BalancesMap>(`/groups/${groupId}/balances/`),
         api.get<Expense[]>(`/groups/${groupId}/expenses/`),
         api.get<Settlement[]>(`/groups/${groupId}/settlements/`),
