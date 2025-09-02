@@ -18,10 +18,10 @@ app = FastAPI(
 
 # Configure CORS
 origins = [
-    "http://localhost:5173",  # Local development
-    "http://localhost:3000",  # Local production build
-    "https://*.koyeb.app/",  # Allow Koyeb domains
-    "https://*.vercel.app/",  # All Vercel preview deployments
+    "http://localhost:5173",  # Local dev
+    "http://localhost:3000",  # Local dev
+    "https://worldwide-alisa-archit-mahule-b4ac4f60.koyeb.app",  # Koyeb backend
+    "https://splitwise-clone-pied.vercel.app",                   # Vercel frontend
 ]
 
 app.add_middleware(
