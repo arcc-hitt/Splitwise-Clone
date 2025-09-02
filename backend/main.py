@@ -29,7 +29,7 @@ app.add_middleware(
     allow_origins=origins,
     allow_credentials=False,
     allow_methods=["*"],
-    allow_headers=["Content-Type", "Accept", "Authorization"],
+    allow_headers=["*"],
 )
 
 # Create all database tables
