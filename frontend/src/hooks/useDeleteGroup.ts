@@ -9,7 +9,7 @@ export function useDeleteGroup(onSuccess: () => void) {
     setLoading(true);
     setError(null);
     try {
-      await api.delete(`/groups/${groupId}`);
+      await api.delete(`/groups/${groupId}/`);
       onSuccess();
     } catch (e: any) {
       setError(e.response?.data?.detail || e.message);

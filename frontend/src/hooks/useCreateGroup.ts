@@ -10,7 +10,7 @@ export function useCreateGroup(onSuccess: () => void) {
     setLoading(true);
     setError(null);
     try {
-      await api.post('/groups', payload);
+      await api.post('/groups/', payload);
       onSuccess();
     } catch (e: any) {
       setError(e.response?.data?.detail || e.message);

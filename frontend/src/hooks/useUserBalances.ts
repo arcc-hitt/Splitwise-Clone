@@ -30,7 +30,7 @@ export function useUserBalances() {
     setLoading(true);
     setError(null);
     try {
-      const balRes = await api.get<BalancesMap>(`/users/${userId}/balances`);
+      const balRes = await api.get<BalancesMap>(`/users/${userId}/balances/`);
       const entries = Object.entries(balRes.data);
       if (!entries.length) {
         setError('User not found or no activity.');
@@ -40,8 +40,8 @@ export function useUserBalances() {
       const all = await Promise.all(
         entries.map(async ([gid, net]) => {
           const [gRes, gbRes, eRes] = await Promise.all([
-            api.get<Group>(`/groups/${gid}`),
-            api.get<BalancesMap>(`/groups/${gid}/balances`),
+            api.get<Group>(`/groups/${gid}/`),
+            api.get<BalancesMap>(`/groups/${gid}/balances/`),
             api.get<Expense[]>(`/groups/${gid}/expenses/`),
           ]);
           const me = Number(userId);

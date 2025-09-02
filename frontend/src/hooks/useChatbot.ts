@@ -26,7 +26,7 @@ export function useChatbot(userId: number) {
       return next;
     });
     try {
-      const res = await api.post<{ answer: string }>("/chat", {
+      const res = await api.post<{ answer: string }>("/chat/", {
         query: text,
         user_id: userId,
       });
