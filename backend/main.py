@@ -18,16 +18,18 @@ app = FastAPI(
 
 # Configure CORS
 origins = [
-    "http://localhost:5173",  # Local development
-    "http://localhost:3000",  # Local production build
-    "https://*.koyeb.app",  # Allow Koyeb domains
-    "https://splitwise-clone-pied.vercel.app",  # Vercel production domain
-    "https://*.vercel.app",  # All Vercel preview deployments
+    "http://localhost:5173",
+    "http://localhost:3000",
+    "http://localhost:4173",  # Vite preview
+    "https://splitwise-clone-pied.vercel.app",
+    "https://*.vercel.app",
+    "https://*.koyeb.app",
 ]
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
+    allow_origins=["*"],  # Temporarily allow all origins for testing
+    allow_credentials=False,
     allow_credentials=False,
     allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["Content-Type", "Accept", "Authorization"],
