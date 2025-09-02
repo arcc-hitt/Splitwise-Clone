@@ -20,7 +20,7 @@ app = FastAPI(
 origins = [
     "http://localhost:5173",
     "http://localhost:3000",
-    "http://localhost:4173",  # Vite preview
+    "http://localhost:4173",
     "https://splitwise-clone-pied.vercel.app",
     "https://*.vercel.app",
     "https://*.koyeb.app",
