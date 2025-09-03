@@ -2,6 +2,8 @@
 
 A simple web app to track shared expenses, built with FastAPI (Python) and React + TailwindCSS. Perfect for organizing trips, events, or any group expenses.
 
+🔗 **[Live Demo](https://splitwise-clone-pied.vercel.app)** | Frontend: [Vercel](https://splitwise-clone-pied.vercel.app) | Backend: [Koyeb](https://worldwide-alisa-archit-mahule-b4ac4f60.koyeb.app)
+
 ---
 
 ## 🚀 Why This Project?
