@@ -41,15 +41,42 @@ A simple web app to track shared expenses, built with FastAPI (Python) and React
    ```bash
    git clone https://github.com/arcc-hitt/Splitwise-Clone.git
    cd Splitwise-Clone
+   ```
 
 2. **Backend**
 
-   ```bash
+   <details>
+   <summary>Windows (PowerShell/CMD)</summary>
+
+   ```powershell
    cd backend
-   python3.12 -m venv venv && source venv/bin/activate
+   # Create and activate virtual environment (PowerShell)
+   python -m venv venv
+   .\venv\Scripts\Activate.ps1
+   # If using CMD, use: .\venv\Scripts\activate.bat
+   
+   # Install dependencies
    pip install -r requirements.txt
+   # Start the server
    uvicorn main:app --reload
    ```
+   </details>
+
+   <details>
+   <summary>macOS/Linux</summary>
+
+   ```bash
+   cd backend
+   # Create and activate virtual environment
+   python3 -m venv venv
+   source venv/bin/activate
+   
+   # Install dependencies
+   pip install -r requirements.txt
+   # Start the server
+   uvicorn main:app --reload
+   ```
+   </details>
 
    * API at [http://localhost:8000](http://localhost:8000)
 
